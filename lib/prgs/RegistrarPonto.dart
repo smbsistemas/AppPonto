@@ -68,7 +68,7 @@ class _RegistrarPonto extends State<RegistrarPonto> {
 
     // Buscar Latitude e Longitude
     _onCurrentLocation();
-    print('local - apos - $_local');
+//    print('local - apos - $_local');
   }
 
   @override
@@ -352,7 +352,6 @@ class _RegistrarPonto extends State<RegistrarPonto> {
     });
 
     return newId;
-    
   }
 
   _onCurrentLocation() {

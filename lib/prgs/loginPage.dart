@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-//import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:path_provider/path_provider.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -13,8 +13,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  //final dataConfig = AppConfig();
-
   String _porta = '';
   String _host = '';
 
@@ -39,13 +37,14 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
 // Conexao Terraço
 //    _porta = '8180';
-//    _host = 'terraco.ddns.net';
+//    _host = 'remoto.terraco.local';
 //    Conexao RGTI - Teste
+    _porta = '8080';
+//    _host = '192.168.0.7'; // LocalHost - Rogerio Peter
+    _host = 'srvrgti.ddns.net';
+//    Conexao RGTI - Produçãp
 //    _porta = '8080';
 //    _host = 'srvrgti.ddns.net';
-//    Conexao RGTI - Produçãp
-    _porta = '8080';
-    _host = 'srvrgti.ddns.net';
 //    _host = '100.68.70.101';
     _readData().then((data) {
       setState(() {
@@ -95,15 +94,27 @@ class _LoginPageState extends State<LoginPage> {
                                 context, "Acesso negado!");
                           }
                         }
-                      })
+                      }),
+/*                  SizedBox(height: 120.0),
+                  new Row(children: <Widget>[
+                    // Espacamento
+                    Container(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => TrocarSenha()),
+                            );
+                          },
+                          child: Text('Trocar a senha'),
+                        ))
+                  ]), */
                 ]))));
   }
 
   _validaAcesso() async {
-    //print('_host: $_host');
-    //print('_porta: $_porta');
-    //print('_user: $_user');
-    //print('_password: $_password');
     var dataValidaAcesso = await http
         .get('http://$_host:$_porta/PTGetValidaUser/$_user/$_password');
     var jsonData = json.decode(dataValidaAcesso.body)['CTRLAcesso'];
@@ -165,27 +176,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-/*
-  Future _showAlertDialog(BuildContext context) async {
-    Alert(
-      context: context,
-      title: "Acesso",
-      desc: "$_nome",
-      buttons: [
-        DialogButton(
-          child: Text(
-            "OK",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => Navigator.pop(context),
-          width: 120,
-        )
-      ],
-    ).show();
-  }
-*/
   void _addUser() {
     setState(() {
+      print('_addUser : $_user matricula: $_matricula');
       Map<String, dynamic> newUser = Map();
       newUser["login"] = _user;
       newUser["senha"] = _password;

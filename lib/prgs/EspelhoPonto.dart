@@ -11,7 +11,8 @@ import 'package:rgti_ponto/models/infra/ContraChequePeriodo.dart';
 class API {
   static Future getCCP(
       String phost, String pporta, String pColigada, String pMatricula) async {
-    var url = "http://$phost:$pporta/PTGetContraChequePeriodo/$pColigada";
+//    var url = "http://$phost:$pporta/PTGetContraChequePeriodo/$pColigada";
+    var url = "http://$phost:$pporta/PTGetPeriodoEspelhoPonto/$pColigada";
     var dataCCP = await http.get(url);
     return dataCCP;
   }
@@ -262,7 +263,7 @@ class _EspelhoPonto extends State<EspelhoPonto> {
   _getCCP() async {
     API.getCCP(_host, _porta, _coligada, _matricula).then((response) {
       setState(() {
-        Iterable list = json.decode(response.body)['ContraChequePeriodo'];
+        Iterable list = json.decode(response.body)['EspelhoPontoPeriodo'];
         _ccPeriodo =
             list.map((model) => ContraChequePeriodo.fromJson(model)).toList();
       });

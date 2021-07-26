@@ -72,7 +72,9 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
                       itemCount: snapshot.data.length,
                       itemBuilder: (BuildContext context, int index) {
                         return ListTile(
-                          title: Text(snapshot.data[index].registro),
+                          title: Text(snapshot.data[index].registro +
+                              ' ' +
+                              snapshot.data[index].tipo),
                           //subtitle: Text(snapshot.data[index].descricao),
                         );
                       });
@@ -86,31 +88,54 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
   }
 
   Future<List<Ponto>> _getMinhasMarcacoes() async {
-    // Inicio - Insert Off-line
-    regPontoOff.getNumMarcacoes().then((_noMarcacoes) {
-      print('peter - getNumMarcacoes: $_noMarcacoes');
-      if (_noMarcacoes > 0) {
-        print('Numero de Registros: $_noMarcacoes');
-        regPontoOff.getAllPonto().then((_listPonto) {
-          print('getAllPonto - Antes do for');
-          for (var i = 0; i < _noMarcacoes; i++) {
-            print('peter - _insertRegisroPonto: $i - _listPonto[i].dataHora');
-            _insertRegisroPonto(
-                _listPonto[i].id, _listPonto[i].dataHora, _listPonto[i].local);
-          }
-        });
-      }
-    });
-    // Fim - Insert Off-line
     List<Ponto> _listPt = [];
     try {
+      // Primeiro - Leitura das marcacoes off-line
+      regPontoOff.getNumMarcacoes().then((_noMarcacoes) {
+        if (_noMarcacoes > 0) {
+          print('Leitura - off line : Numero de Registros: $_noMarcacoes');
+          regPontoOff.getAllPonto().then((_listPontoOff) {
+            for (var i = 0; i < _noMarcacoes; i++) {
+              print('i: $i');
+              String wdataHora = _listPontoOff[i].dataHora;
+              print('registro : dataHora: $wdataHora');
+              Ponto documento = Ponto(i, _listPontoOff[i].dataHora, 'Off');
+              _listPt.add(documento);
+            }
+            // print('registro abaixo listado off-line:');
+            // print(_listPt[0].registro);
+            // return _listPt;
+          });
+        }
+      });
+      // fim Leitura Marcacoes Off-Line
+      // Inicio - Insert Off-line
+      /*  regPontoOff.getNumMarcacoes().then((_noMarcacoes) {
+        print('getNumMarcacoes: $_noMarcacoes');
+        if (_noMarcacoes > 0) {
+          print('Insert - Numero de Registros: $_noMarcacoes');
+          regPontoOff.getAllPonto().then((_listPonto) {
+            print('Insert - getAllPonto - Antes do for');
+            for (var i = 0; i < _noMarcacoes; i++) {
+              print('peter - _insertRegisroPonto: $i - _listPonto[i].dataHora');
+              try {
+                _insertRegisroPonto(_listPonto[i].id, _listPonto[i].dataHora,
+                    _listPonto[i].local);
+              } catch (e) {}
+            }
+          });
+        }
+      }); */
+      // Fim - Insert Off-line
+      // Leitura Marcações
+      print('Leitura - OnLine ');
       var data = await http.get(
           'http://$_host:$_porta/PTGetMinhasMarcacoes/$_coligada/$_matricula');
       var jsonData = json.decode(data.body)['MinhasMarcacoes'];
 
       int x = 0;
       for (var u in jsonData) {
-        Ponto documento = Ponto(x, u['REGISTRO']);
+        Ponto documento = Ponto(x, u['REGISTRO'], '');
         _listPt.add(documento);
         x = x + 1;
       }
@@ -118,6 +143,7 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
       print('off-line - leitura');
       // Marcacoes off-line - Show (apresentar apenas)
       // Insert dos registros off-line
+      /*
       regPontoOff.getNumMarcacoes().then((_noMarcacoes) {
         if (_noMarcacoes > 0) {
           print('Numero de Registros: $_noMarcacoes');
@@ -126,14 +152,17 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
               print('i: $i');
               String wdataHora = _listPontoOff[i].dataHora;
               print('dataHora: $wdataHora');
-              Ponto documento = Ponto(i, _listPontoOff[i].dataHora);
+              Ponto documento = Ponto(i, _listPontoOff[i].dataHora, 'Off');
               _listPt.add(documento);
             }
+            print('registro abaixo listado off-line:');
             print(_listPt[0].registro);
             return _listPt;
           });
         }
+        
       });
+      */
       // fim - show - marcacoes off-line
     }
     return _listPt;
@@ -162,10 +191,8 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
       var dataPonto = await http.get(
           'http://$_host:$_porta/PTPostRegistrarPonto/$_coligada/$_matricula/$pdataHora/$pLocal/$_pTipo');
       var jsonData = json.decode(dataPonto.body)['RegistrarPonto'];
-
       List<RegistraPonto> _registraPonto = [];
       int x = 0;
-
       for (var u in jsonData) {
         RegistraPonto documento = RegistraPonto(x, u['CODIGO'], u['MENSAGEM']);
         _registraPonto.add(documento);
@@ -174,7 +201,9 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
       wRetorno = _registraPonto[0].rpCodigo;
       if (wRetorno == 'OK') {
         print('deletou registro off-line');
-        regPontoOff.deletePonto(pId);
+        try {
+          regPontoOff.deletePonto(pId);
+        } catch (e) {}
       }
     } catch (e) {
       return null;
@@ -194,8 +223,9 @@ class _MinhasMarcacoes extends State<MinhasMarcacoes> {
 class Ponto {
   final int index;
   final String registro;
+  final String tipo;
 
-  Ponto(this.index, this.registro);
+  Ponto(this.index, this.registro, this.tipo);
 }
 
 class RegistraPonto {

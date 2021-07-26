@@ -9,8 +9,12 @@ import 'package:rgti_ponto/prgs/EspelhoPonto.dart';
 import 'package:rgti_ponto/prgs/MinhasMarcacoes.dart';
 import 'package:rgti_ponto/prgs/RegistrarPonto.dart';
 import 'package:rgti_ponto/prgs/Sobre.dart';
+import 'package:rgti_ponto/prgs/TrocarSenha.dart';
 import 'package:rgti_ponto/prgs/loginPage.dart';
 import 'package:rgti_ponto/models/infra/marcacoes.dart';
+import 'package:rgti_ponto/prgs/MinhasMarcacoesOff.dart';
+import 'package:rgti_ponto/prgs/TrocarSenha.dart';
+import 'package:rgti_ponto/prgs/LogOut.dart';
 
 class MainMenu extends StatefulWidget {
   @override
@@ -48,26 +52,36 @@ class MainMenuState extends State<MainMenu> {
     _appBarTitle = new Text(_menuItems.first.title);
     _appBarBackgroundColor = _menuItems.first.color;
 
-    _readData().then((data) {
-      setState(() {
-        _acessoUserList = json.decode(data);
-        _login = _acessoUserList[0]['login'];
-        _password = _acessoUserList[0]['senha'];
-        _nome = _acessoUserList[0]['nome'];
-        _codigo = _acessoUserList[0]['codigo'];
-        _host = _acessoUserList[0]['host'];
-        _porta = _acessoUserList[0]['porta'];
-        _coligada = _acessoUserList[0]['coligada'];
-        _matricula = _acessoUserList[0]['codigo'];
+    try {
+      _readData().then((data) {
+        setState(() {
+          _acessoUserList = json.decode(data);
+          _login = _acessoUserList[0]['login'];
+          _password = _acessoUserList[0]['senha'];
+          _nome = _acessoUserList[0]['nome'];
+          _codigo = _acessoUserList[0]['codigo'];
+          _host = _acessoUserList[0]['host'];
+          _porta = _acessoUserList[0]['porta'];
+          _coligada = _acessoUserList[0]['coligada'];
+          _matricula = _acessoUserList[0]['codigo'];
+          _temLogin = true;
 
-        print('Main - _password: $_password');
-        print('Main - _nome: $_nome');
-        print('Main - _codigo: $_codigo ');
-        print('Main - _host: $_host');
-        print('Main - _porta: $_porta');
-        print('Main - _login: $_login');
+          if (_nome == null) {
+            _temLogin = false;
+          }
+
+          print('Main - _password: $_password');
+          print('Main - _nome: $_nome');
+          print('Main - _codigo: $_codigo ');
+          print('Main - _host: $_host');
+          print('Main - _porta: $_porta');
+          print('Main - _login: $_login');
+        });
       });
-    });
+    } catch (e) {
+      _temLogin = false;
+    }
+
     if (_login.length == 0) {
       _temLogin = false;
     }
@@ -81,14 +95,6 @@ class MainMenuState extends State<MainMenu> {
     } catch (e) {
       _temLogin = false;
     }
-/*
-    final directory = await getApplicationDocumentsDirectory();
-    if (File("${directory.path}/dtPontoUser.json").existsSync()) {
-      _temLogin = true;
-      return File("${directory.path}/dtPontoUser.json");
-    } else {
-      _temLogin = false;
-    } */
   }
 
   Future<String> _readData() async {
@@ -101,34 +107,7 @@ class MainMenuState extends State<MainMenu> {
   }
 
   _getMenuItemWidget(MenuItem menuItem) {
-    /*  try {
-      OfflineBuilder(connectivityBuilder: (
-        BuildContext context,
-        ConnectivityResult connectivity,
-        Widget child,
-      ) {
-        final bool connected = connectivity != ConnectivityResult.none;
-        if (connected) {
-          print('registrado pelo menu');
-          // Insert dos registros off-line
-          regPontoOff.getNumMarcacoes().then((_noMarcacoes) {
-            if (_noMarcacoes > 0) {
-              print('Numero de Registros: $_noMarcacoes');
-              regPontoOff.getAllPonto().then((_listPonto) {
-                for (var i = 0; i < _noMarcacoes; i++) {
-                  _insertRegisroPonto(_listPonto[i].id, _listPonto[i].dataHora);
-                }
-              });
-            }
-          });
-        }
-      });
-    } catch (e) { */
-    //return null;
     return menuItem.func();
-    // }
-
-    // print('menuitem: $menuItem');
   }
 
   _onSelectItem(MenuItem menuItem) {
@@ -157,7 +136,6 @@ class MainMenuState extends State<MainMenu> {
                 menuItem.title,
                 style: new TextStyle(
                     fontSize: 20.0,
-//                    color: menuItem.color,
                     color: Colors.black,
                     fontWeight: menuItem == _selectedMenuItem
                         ? FontWeight.bold
@@ -192,9 +170,6 @@ class MainMenuState extends State<MainMenu> {
             new Container(
               width: 260,
               height: 260,
-//              child: CircleAvatar(
-//                backgroundImage: new AssetImage('images/logorgti.jpg'),
-//              ),
               child: Image.asset(
                 'images/logorgti.jpg',
                 width: 150,
@@ -244,46 +219,21 @@ class MainMenuState extends State<MainMenu> {
           _temLogin == true ? "Minhas marcações" : "Login",
           '',
           Colors.red,
-          () => _temLogin == true ? MinhasMarcacoes() : LoginPage()),
+          () => (_temLogin == true ? MinhasMarcacoes() : LoginPage())),
+      new MenuItem("Minhas marcações - Off Line", '', Colors.red,
+          () => MinhasMarcacoesOff()),
       new MenuItem(
           "Registrar Ponto", '', Colors.red, () => new RegistrarPonto()),
       new MenuItem(
           "Espelho de Ponto", '', Colors.red, () => new EspelhoPonto()),
       new MenuItem("Contracheque", '', Colors.red, () => new ContraCheque()),
-      new MenuItem(
-          _temLogin == true ? "Login" : "Minhas marcações",
-          '',
-          Colors.red,
-          () => _temLogin == true ? LoginPage() : MinhasMarcacoes()),
+      new MenuItem("Trocar Senha", '', Colors.red, () => new TrocarSenha()),
+      new MenuItem(_temLogin == true ? "LogOut" : "Login", '', Colors.red,
+          () => _temLogin == true ? LogOut() : LoginPage()),
       new MenuItem("Sobre", '', Colors.red, () => new Sobre()),
     ];
     return menuItems;
   }
-/*
-  void _insertRegisroPonto(int pId, String pdataHora) async {
-    try {
-      // Registrar o Ponto
-      String wRetorno = '';
-      var dataPonto = await http.get(
-          'http://$_host:$_porta/PTPostRegistrarPonto/$_coligada/$_matricula/$pdataHora');
-      var jsonData = json.decode(dataPonto.body)['RegistrarPonto'];
-
-      List<RegistraPonto> _registraPonto = [];
-      int x = 0;
-
-      for (var u in jsonData) {
-        RegistraPonto documento = RegistraPonto(x, u['CODIGO'], u['MENSAGEM']);
-        _registraPonto.add(documento);
-        x = x + 1;
-      }
-      wRetorno = _registraPonto[0].rpCodigo;
-      if (wRetorno == 'OK') {
-        regPontoOff.deletePonto(pId);
-      }
-    } catch (e) {
-      return null;
-    }
-  } */
 }
 
 class RegistraPonto {
